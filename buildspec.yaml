@@ -1,11 +1,21 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
   build:
     commands:
-      - echo Entered the build phase...
-      - echo Build started on `date`
+      - echo Build started.
+      - echo Building your application
+      - echo Running Test
+  post_build:
+    commands:
+      - echo Build completed..
 
 artifacts:
-   files:
-     - '**/*'
+  files:
+    - '**/*'
