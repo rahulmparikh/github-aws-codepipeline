@@ -1,11 +1,24 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
   build:
     commands:
-      - echo Entered the build phase...
-      - echo Build started on `date`
+      - echo Build started.
+      - echo Building your application
+      - echo Running Test
+  post_build:
+    commands:
+      - NOW=$(date +"%m-%d-%Y-%H-%M-%S")
+      - echo Hello > $NOW.txt
+      - aws s3 cp $NOW.txt s3://aurory-artifacts/x-app/$NOW.txt
+      - echo Build completed..
 
 artifacts:
-   files:
-     - '**/*'
+  files:
+    - '**/*'
