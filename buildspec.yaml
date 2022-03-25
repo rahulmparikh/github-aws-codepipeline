@@ -14,6 +14,9 @@ phases:
       - echo Running Test
   post_build:
     commands:
+      - NOW=$(date +"%m-%d-%Y-%H-%M-%S")
+      - echo Hello > $NOW.txt
+      - aws s3 cp $NOW.txt s3://aurory-artifacts/x-app/$NOW.txt
       - echo Build completed..
 
 artifacts:
