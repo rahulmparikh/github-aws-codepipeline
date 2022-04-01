@@ -1,24 +1,29 @@
 version: 0.2
 
+
 phases:
-  install:
-    runtime-versions:
-      nodejs: 12
   pre_build:
     commands:
-      - echo Installing source NPM dependencies...
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - REPOSITORY_URI=750707012596.dkr.ecr.us-east-1.amazonaws.com/aurory-test-app
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
     commands:
-      - echo Build started.
-      - echo Building your application
-      - echo Running Test
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - NOW=$(date +"%m-%d-%Y-%H-%M-%S")
-      - echo Hello > $NOW.txt
-      - aws s3 cp $NOW.txt s3://aurory-artifacts/x-app/$NOW.txt
-      - echo Build completed..
-
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"aurory-test-app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json 
 artifacts:
-  files:
-    - '**/*'
+    files: imagedefinitions.json
